@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Карта Європи з кордонами країн</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+        #country-name {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="country-name"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([54.5260, 15.2551], 4); // Центрування на Європі
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var countryNameDiv = document.getElementById('country-name');
+        var selectedCountry = null;
+        var countryLayers = [];
+
+        // Функція для отримання випадкової назви країни
+        function getRandomCountryName(countries) {
+            var randomIndex = Math.floor(Math.random() * countries.length);
+            return countries[randomIndex].properties.ADMIN;
+        }
+
+        // Функція для відображення випадкової назви країни
+        function displayRandomCountryName(countries) {
+            selectedCountry = getRandomCountryName(countries);
+            countryNameDiv.innerText = 'Виберіть країну: ' + selectedCountry;
+        }
+
+        // Отримання та відображення кордонів країн
+        fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+            .then(response => response.json())
+            .then(data => {
+                var countries = data.features;
+                displayRandomCountryName(countries);
+
+                // Додавання кордонів країн на карту
+                L.geoJSON(data, {
+                    style: function (feature) {
+                        return {color: 'blue', weight: 2};
+                    },
+                    onEachFeature: function (feature, layer) {
+                        countryLayers.push(layer);
+                        layer.on('click', function () {
+                            if (feature.properties.ADMIN === selectedCountry) {
+                                layer.setStyle({color: 'green'});
+                            } else {
+                                layer.setStyle({color: 'red'});
+                            }
+                        });
+                    }
+                }).addTo(map);
+            });
+    </script>
+</body>
+</html>

@@ -17,6 +17,7 @@
             background-color: white;
             padding: 10px;
             border: 1px solid black;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -35,6 +36,10 @@
         var selectedCountry = null;
         var countryLayers = [];
 
+        const europeanCountryCodes = [
+    "ALB", "AND", "ARM", "AUT", "AZE", "BLR", "BEL", "BIH", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "GEO", "DEU", "GRC", "HUN", "ISL", "IRL", "ITA", "KAZ", "XKX", "LVA", "LIE", "LTU", "LUX", "MLT", "MDA", "MCO", "MNE", "NLD", "MKD", "NOR", "POL", "PRT", "ROU", "RUS", "SMR", "SRB", "SVK", "SVN", "ESP", "SWE", "CHE", "TUR", "UKR", "GBR", "VAT"
+];
+
         // Функція для отримання випадкової назви країни
         function getRandomCountryName(countries) {
             var randomIndex = Math.floor(Math.random() * countries.length);
@@ -51,7 +56,7 @@
         fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
             .then(response => response.json())
             .then(data => {
-                var countries = data.features;
+                var countries = data.features.filter(country => europeanCountryCodes.includes(country.properties.ISO_A3));
                 displayRandomCountryName(countries);
 
                 // Додавання кордонів країн на карту

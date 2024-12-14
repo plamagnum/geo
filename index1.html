@@ -19,11 +19,21 @@
             border: 1px solid black;
             z-index: 1000;
         }
+        #score {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: white;
+            padding: 10px;
+            border: 1px solid black;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <div id="country-name"></div>
+    <div id="score">Правильні: 0, Неправильні: 0</div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([54.5260, 15.2551], 4); // Центрування на Європі
@@ -33,12 +43,15 @@
         }).addTo(map);
 
         var countryNameDiv = document.getElementById('country-name');
+        var scoreDiv = document.getElementById('score');
         var selectedCountry = null;
         var countryLayers = [];
+        var correctCount = 0;
+        var incorrectCount = 0;
 
         const europeanCountryCodes = [
-    "ALB", "AND", "ARM", "AUT", "AZE", "BLR", "BEL", "BIH", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "GEO", "DEU", "GRC", "HUN", "ISL", "IRL", "ITA", "KAZ", "XKX", "LVA", "LIE", "LTU", "LUX", "MLT", "MDA", "MCO", "MNE", "NLD", "MKD", "NOR", "POL", "PRT", "ROU", "RUS", "SMR", "SRB", "SVK", "SVN", "ESP", "SWE", "CHE", "TUR", "UKR", "GBR", "VAT"
-];
+            "ALB", "AND", "ARM", "AUT", "AZE", "BLR", "BEL", "BIH", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "GEO", "DEU", "GRC", "HUN", "ISL", "IRL", "ITA", "KAZ", "XKX", "LVA", "LIE", "LTU", "LUX", "MLT", "MDA", "MCO", "MNE", "NLD", "MKD", "NOR", "POL", "PRT", "ROU", "RUS", "SMR", "SRB", "SVK", "SVN", "ESP", "SWE", "CHE", "TUR", "UKR", "GBR", "VAT"
+        ];
 
         // Функція для отримання випадкової назви країни
         function getRandomCountryName(countries) {
@@ -52,6 +65,24 @@
             countryNameDiv.innerText = 'Виберіть країну: ' + selectedCountry;
         }
 
+        // Функція для оновлення рахунку
+        function updateScore(correct) {
+            if (correct) {
+                correctCount++;
+            } else {
+                incorrectCount++;
+            }
+            scoreDiv.innerText = `Правильні: ${correctCount}, Неправильні: ${incorrectCount}`;
+        }
+
+        // Функція для оновлення країни
+        function changeCountry(countries) {
+            displayRandomCountryName(countries);
+            countryLayers.forEach(layer => {
+                layer.setStyle({color: 'blue', weight: 2});
+            });
+        }
+
         // Отримання та відображення кордонів країн
         fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
             .then(response => response.json())
@@ -60,7 +91,7 @@
                 displayRandomCountryName(countries);
 
                 // Додавання кордонів країн на карту
-                L.geoJSON(data, {
+                L.geoJSON(countries, {
                     style: function (feature) {
                         return {color: 'blue', weight: 2};
                     },
@@ -69,9 +100,12 @@
                         layer.on('click', function () {
                             if (feature.properties.ADMIN === selectedCountry) {
                                 layer.setStyle({color: 'green'});
+                                updateScore(true);
                             } else {
                                 layer.setStyle({color: 'red'});
+                                updateScore(false);
                             }
+                            changeCountry(countries);
                         });
                     }
                 }).addTo(map);
